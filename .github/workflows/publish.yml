@@ -31,7 +31,7 @@ jobs:
         run: npm ci
 
       - name: Build Angular app
-        run: npm run build -- --configuration production --base-href "https://github.com/hocino/gojs-diagram-editor"
+        run: npm run build -- --configuration production --base-href "https://github.com/hocino/gojs-diagram-editor/"
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -39,14 +39,14 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./dist/gojs-diagram-editor
+          path: ./dist/gojs-diagram-editor/browser
 
   deploy:
+    needs: build
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
 
     steps:
       - name: Deploy to GitHub Pages
