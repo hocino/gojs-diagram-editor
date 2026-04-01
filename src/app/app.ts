@@ -685,7 +685,7 @@ export class App implements AfterViewInit, OnDestroy {
                 go.Panel,
                 go.Panel.Horizontal,
                 {
-                  alignment: go.Spot.Right,
+                  alignment: new go.Spot(1, 0.5, -15, 0),
                   alignmentFocus: go.Spot.Right,
                   margin: new go.Margin(0, 4, 0, 0),
                 },
