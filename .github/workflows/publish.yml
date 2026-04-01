@@ -31,7 +31,7 @@ jobs:
         run: npm ci
 
       - name: Build Angular app
-        run: npm run build -- --configuration production --base-href "https://github.com/hocino/gojs-diagram-editor/"
+        run: npm run build -- --configuration production --base-href "/gojs-diagram-editor/"
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
