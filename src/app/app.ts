@@ -15,7 +15,7 @@ import * as go from 'gojs';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
-export type ShapeType = 'rectangle' | 'circle' | 'diamond' | 'process';
+export type ShapeType = 'rectangle' | 'circle' | 'diamond' | 'process' | 'activite';
 
 export type LayoutType = 'tree' | 'layered' | 'force' | 'circular' | 'grid';
 
@@ -27,6 +27,12 @@ export interface NodeData {
   loc: string;
   group?: string;
   isGroup?: false;
+  // activite-specific
+  points?: number;
+  tag?: string;
+  flow?: string;
+  duration?: string;
+  calendar?: string;
 }
 
 export interface GroupData {
@@ -255,6 +261,7 @@ const SHAPE_COLORS: Record<ShapeType, string> = {
   circle: '#F47A30',
   diamond: '#F47A30',
   process: '#F47A30',
+  activite: '#F47A30',
 };
 
 const SHAPE_LABELS: Record<ShapeType, string> = {
@@ -262,6 +269,7 @@ const SHAPE_LABELS: Record<ShapeType, string> = {
   circle: 'Cercle',
   diamond: 'Losange',
   process: 'Processus',
+  activite: 'Activité',
 };
 
 // ─── Component ─────────────────────────────────────────────────────────────────
@@ -419,6 +427,10 @@ export class App implements AfterViewInit, OnDestroy {
       'process',
       this._makeNodeTemplate('Capsule', 160, 50)
     );
+    this.diagram.nodeTemplateMap.add(
+      'activite',
+      this._makeActiviteTemplate()
+    );
 
     // ── Group template ───────────────────────────────────────────────────────
 
@@ -553,6 +565,238 @@ export class App implements AfterViewInit, OnDestroy {
         cursor: 'pointer',
       }),
       // Output port (right)
+      make(go.Shape, 'Circle', {
+        portId: 'out',
+        alignment: go.Spot.Right,
+        fromSpot: go.Spot.RightSide,
+        fromLinkable: true,
+        toLinkable: false,
+        fromLinkableSelfNode: false,
+        width: 10,
+        height: 10,
+        fill: '#F47A30',
+        stroke: '#d45a10',
+        strokeWidth: 2,
+        cursor: 'crosshair',
+      })
+    );
+  }
+
+  // ─── Activité card template builder ───────────────────────────────────────
+
+  private _makeActiviteTemplate(): go.Node {
+    const make = go.GraphObject.make;
+    const CARD_W = 220;
+    const HEADER_H = 36;
+
+    return make(
+      go.Node,
+      go.Panel.Spot,
+      {
+        locationSpot: go.Spot.Center,
+        selectionObjectName: 'CARD_BG',
+        resizable: false,
+        rotatable: false,
+        fromLinkable: false,
+        toLinkable: false,
+        avoidableMargin: new go.Margin(12),
+        selectionAdornmentTemplate: make(go.Adornment, 'Auto'),
+        mouseEnter: (_: go.InputEvent, obj: go.GraphObject) => {
+          const bg = (obj as go.Node).findObject('CARD_BG') as go.Shape | null;
+          if (bg) bg.strokeWidth = 2;
+        },
+        mouseLeave: (_: go.InputEvent, obj: go.GraphObject) => {
+          const node = obj as go.Node;
+          const bg = node.findObject('CARD_BG') as go.Shape | null;
+          if (bg) bg.strokeWidth = node.isSelected ? 2 : 1;
+        },
+      },
+      new go.Binding('location', 'loc', go.Point.parse).makeTwoWay(go.Point.stringify),
+
+      // ── Card container ─────────────────────────────────────────────────────
+      make(
+        go.Panel,
+        go.Panel.Auto,
+        // Background
+        make(
+          go.Shape,
+          'RoundedRectangle',
+          {
+            name: 'CARD_BG',
+            parameter1: 8,
+            fill: 'white',
+            stroke: '#d0dce8',
+            strokeWidth: 1,
+          },
+          new go.Binding('strokeWidth', 'isSelected', (sel: boolean) => sel ? 2 : 1).ofObject(),
+          new go.Binding('stroke', 'isSelected', (sel: boolean) => sel ? '#F47A30' : '#d0dce8').ofObject(),
+          new go.Binding('fill', 'isSelected', (sel: boolean) => sel ? '#FFF9F5' : 'white').ofObject()
+        ),
+        // Content
+        make(
+          go.Panel,
+          go.Panel.Vertical,
+          { width: CARD_W, defaultAlignment: go.Spot.Left },
+
+          // ── Header row: coloured band with title + badges ──────────────────
+          make(
+            go.Panel,
+            go.Panel.Spot,
+            {
+              stretch: go.Stretch.Horizontal,
+              height: HEADER_H,
+            },
+            // Header background
+            make(go.Shape, 'RoundedTopRectangle', {
+              fill: '#f0f4f8',
+              strokeWidth: 0,
+              stretch: go.Stretch.Fill,
+              parameter1: 8,
+            }),
+            // Title (left)
+            make(
+              go.TextBlock,
+              {
+                alignment: go.Spot.Left,
+                alignmentFocus: go.Spot.Left,
+                margin: new go.Margin(0, 0, 0, 12),
+                font: 'bold 12px Inter, "Segoe UI", sans-serif',
+                stroke: '#1e2c3a',
+                editable: true,
+                isMultiline: false,
+                overflow: go.TextOverflow.Ellipsis,
+                maxSize: new go.Size(120, Number.NaN),
+              },
+              new go.Binding('text', 'label').makeTwoWay()
+            ),
+            // Badges (right)
+            make(
+              go.Panel,
+              go.Panel.Horizontal,
+              {
+                alignment: go.Spot.Right,
+                alignmentFocus: go.Spot.Right,
+                margin: new go.Margin(0, 10, 0, 0),
+              },
+              // Points badge — purple
+              make(
+                go.Panel,
+                go.Panel.Auto,
+                make(go.Shape, 'RoundedRectangle', {
+                  fill: '#7c4dab',
+                  strokeWidth: 0,
+                  parameter1: 9,
+                  minSize: new go.Size(34, 18),
+                }),
+                make(
+                  go.TextBlock,
+                  {
+                    margin: new go.Margin(2, 6),
+                    font: 'bold 9px Inter, "Segoe UI", sans-serif',
+                    stroke: 'white',
+                  },
+                  new go.Binding('text', 'points', (p: number) => String(p ?? 0) + ' \u25c6')
+                )
+              ),
+              // Tag badge — orange (4 px gap via left margin)
+              make(
+                go.Panel,
+                go.Panel.Auto,
+                { margin: new go.Margin(0, 0, 0, 4) },
+                make(go.Shape, 'RoundedRectangle', {
+                  fill: '#F47A30',
+                  strokeWidth: 0,
+                  parameter1: 9,
+                  minSize: new go.Size(34, 18),
+                }),
+                make(
+                  go.TextBlock,
+                  {
+                    margin: new go.Margin(2, 6),
+                    font: 'bold 9px Inter, "Segoe UI", sans-serif',
+                    stroke: 'white',
+                  },
+                  new go.Binding('text', 'tag', (t: string) => (t ?? 'DRT') + ' \uD83D\uDD12')
+                )
+              )
+            )
+          ),
+
+          // ── Divider ─────────────────────────────────────────────────────────
+          make(go.Shape, 'LineH', {
+            stroke: '#e5ecf5',
+            strokeWidth: 1,
+            height: 1,
+            stretch: go.Stretch.Horizontal,
+          }),
+
+          // ── Flow row ────────────────────────────────────────────────────────
+          make(
+            go.TextBlock,
+            {
+              margin: new go.Margin(6, 12, 3, 12),
+              font: '500 11px Inter, "Segoe UI", sans-serif',
+              stroke: '#1e2c3a',
+              overflow: go.TextOverflow.Ellipsis,
+              maxSize: new go.Size(CARD_W - 24, Number.NaN),
+            },
+            new go.Binding('text', 'flow')
+          ),
+
+          // ── Duration row ────────────────────────────────────────────────────
+          make(
+            go.Panel,
+            go.Panel.Horizontal,
+            { margin: new go.Margin(2, 12, 2, 12), defaultAlignment: go.Spot.Center },
+            make(go.TextBlock, {
+              text: '\u23F1',
+              font: '11px sans-serif',
+              stroke: '#8099b0',
+              margin: new go.Margin(0, 5, 0, 0),
+            }),
+            make(
+              go.TextBlock,
+              { font: '10px Inter, "Segoe UI", sans-serif', stroke: '#8099b0' },
+              new go.Binding('text', 'duration', (d: string) => 'Dur\u00e9e ' + (d ?? '-'))
+            )
+          ),
+
+          // ── Calendar row ────────────────────────────────────────────────────
+          make(
+            go.Panel,
+            go.Panel.Horizontal,
+            { margin: new go.Margin(2, 12, 10, 12), defaultAlignment: go.Spot.Center },
+            make(go.TextBlock, {
+              text: '\uD83D\uDCC5',
+              font: '11px sans-serif',
+              stroke: '#8099b0',
+              margin: new go.Margin(0, 5, 0, 0),
+            }),
+            make(
+              go.TextBlock,
+              { font: '10px Inter, "Segoe UI", sans-serif', stroke: '#8099b0' },
+              new go.Binding('text', 'calendar', (c: string) => 'Calendrier ' + (c ?? '-'))
+            )
+          )
+        )
+      ),
+
+      // ── Input port ─────────────────────────────────────────────────────────
+      make(go.Shape, 'Circle', {
+        portId: 'in',
+        alignment: go.Spot.Left,
+        toSpot: go.Spot.LeftSide,
+        fromLinkable: false,
+        toLinkable: true,
+        toLinkableSelfNode: false,
+        width: 10,
+        height: 10,
+        fill: 'white',
+        stroke: '#99b0c8',
+        strokeWidth: 2,
+        cursor: 'pointer',
+      }),
+      // ── Output port ────────────────────────────────────────────────────────
       make(go.Shape, 'Circle', {
         portId: 'out',
         alignment: go.Spot.Right,
@@ -751,6 +995,15 @@ export class App implements AfterViewInit, OnDestroy {
         color: SHAPE_COLORS[type],
         loc: '0 0',
       };
+      if (type === 'activite') {
+        Object.assign(nodeData, {
+          points: 0,
+          tag: 'DRT',
+          flow: 'Flow : -',
+          duration: '-',
+          calendar: '-',
+        });
+      }
       this.diagram.startTransaction('add node');
       this.diagram.model.addNodeData(nodeData);
       this.diagram.commitTransaction('add node');
@@ -798,6 +1051,60 @@ export class App implements AfterViewInit, OnDestroy {
       this._selNodeData.update((d) => (d ? { ...d, color } : null));
     }
   }
+
+  // ─── Activité-specific property updates ────────────────────────────────────
+
+  updateActivitePoints(value: string): void {
+    const nodeData = this._selNodeData();
+    if (!nodeData || nodeData.category !== 'activite') return;
+    const points = Math.max(0, parseInt(value, 10) || 0);
+    const data = this.diagram.model.findNodeDataForKey(nodeData.key);
+    if (data) {
+      this.diagram.model.commit((m) => m.setDataProperty(data, 'points', points), 'update points');
+      this._selNodeData.update((d) => (d ? { ...d, points } : null));
+    }
+  }
+
+  updateActiviteTag(tag: string): void {
+    const nodeData = this._selNodeData();
+    if (!nodeData || nodeData.category !== 'activite') return;
+    const data = this.diagram.model.findNodeDataForKey(nodeData.key);
+    if (data) {
+      this.diagram.model.commit((m) => m.setDataProperty(data, 'tag', tag), 'update tag');
+      this._selNodeData.update((d) => (d ? { ...d, tag } : null));
+    }
+  }
+
+  updateActiviteFlow(flow: string): void {
+    const nodeData = this._selNodeData();
+    if (!nodeData || nodeData.category !== 'activite') return;
+    const data = this.diagram.model.findNodeDataForKey(nodeData.key);
+    if (data) {
+      this.diagram.model.commit((m) => m.setDataProperty(data, 'flow', flow), 'update flow');
+      this._selNodeData.update((d) => (d ? { ...d, flow } : null));
+    }
+  }
+
+  updateActiviteDuration(duration: string): void {
+    const nodeData = this._selNodeData();
+    if (!nodeData || nodeData.category !== 'activite') return;
+    const data = this.diagram.model.findNodeDataForKey(nodeData.key);
+    if (data) {
+      this.diagram.model.commit((m) => m.setDataProperty(data, 'duration', duration), 'update duration');
+      this._selNodeData.update((d) => (d ? { ...d, duration } : null));
+    }
+  }
+
+  updateActiviteCalendar(calendar: string): void {
+    const nodeData = this._selNodeData();
+    if (!nodeData || nodeData.category !== 'activite') return;
+    const data = this.diagram.model.findNodeDataForKey(nodeData.key);
+    if (data) {
+      this.diagram.model.commit((m) => m.setDataProperty(data, 'calendar', calendar), 'update calendar');
+      this._selNodeData.update((d) => (d ? { ...d, calendar } : null));
+    }
+  }
+
 
   updateGroupLabel(label: string): void {
     const groupData = this._selGroupData();

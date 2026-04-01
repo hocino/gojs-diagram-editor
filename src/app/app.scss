@@ -127,6 +127,7 @@
   &.circle-btn  { border-color: #27AE60; color: #5dd68e; &:hover:not(:disabled) { background: #1b3b28; border-color: #27AE60; } }
   &.diamond-btn { border-color: #E67E22; color: #f0a85a; &:hover:not(:disabled) { background: #3d2a10; border-color: #E67E22; } }
   &.process-btn { border-color: #8E44AD; color: #c07ae0; &:hover:not(:disabled) { background: #2e1843; border-color: #8E44AD; } }
+  &.activite-btn { border-color: #2980b9; color: #7ec8f5; &:hover:not(:disabled) { background: #152638; border-color: #2980b9; } }
 }
 
 .danger-btn {
@@ -285,6 +286,22 @@
     &.badge-circle    { background: #e8fff0; color: #27AE60; }
     &.badge-diamond   { background: #fff5e8; color: #E67E22; }
     &.badge-process   { background: #f5e8ff; color: #8E44AD; }
+    &.badge-activite  { background: #e8f4ff; color: #2980b9; }
+  }
+
+  .prop-section-title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #2980b9;
+    border-top: 1px solid #eef1f5;
+    padding-top: 10px;
+    margin-top: 2px;
+  }
+
+  .prop-input-sm {
+    width: 80px;
   }
 
   .prop-mono {

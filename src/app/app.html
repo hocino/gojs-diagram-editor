@@ -43,6 +43,16 @@
         <svg width="20" height="14" viewBox="0 0 20 14"><rect x="1" y="1" width="18" height="12" rx="6" fill="currentColor" opacity=".85"/></svg>
         Processus
       </button>
+      <button class="btn shape-btn activite-btn" (click)="addNode('activite')" title="Ajouter une Activité">
+        <svg width="20" height="15" viewBox="0 0 20 15" fill="none">
+          <rect x="1" y="1" width="18" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="1" y1="5.5" x2="19" y2="5.5" stroke="currentColor" stroke-width="1.2"/>
+          <rect x="13" y="2.5" width="4.5" height="2.5" rx="1.25" fill="currentColor" opacity=".8"/>
+          <line x1="4" y1="9" x2="10" y2="9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="4" y1="11.5" x2="8" y2="11.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+        Activité
+      </button>
     </div>
 
     <div class="toolbar-divider"></div>
@@ -168,6 +178,39 @@
               <span class="color-val">{{ node.color }}</span>
             </div>
           </div>
+
+          @if (node.category === 'activite') {
+            <div class="prop-section-title">Activité</div>
+
+            <div class="prop-row">
+              <label class="prop-label">Points</label>
+              <input class="prop-input prop-input-sm" type="number" min="0"
+                [value]="node.points ?? 0"
+                (change)="updateActivitePoints($any($event.target).value)"/>
+            </div>
+            <div class="prop-row">
+              <label class="prop-label">Tag</label>
+              <input class="prop-input" type="text" [value]="node.tag ?? ''"
+                (change)="updateActiviteTag($any($event.target).value)"/>
+            </div>
+            <div class="prop-row">
+              <label class="prop-label">Flow</label>
+              <input class="prop-input" type="text" [value]="node.flow ?? ''"
+                (change)="updateActiviteFlow($any($event.target).value)"/>
+            </div>
+            <div class="prop-row">
+              <label class="prop-label">Durée</label>
+              <input class="prop-input" type="text" placeholder="ex : 50h"
+                [value]="node.duration ?? ''"
+                (change)="updateActiviteDuration($any($event.target).value)"/>
+            </div>
+            <div class="prop-row">
+              <label class="prop-label">Calendrier</label>
+              <input class="prop-input" type="text" [value]="node.calendar ?? ''"
+                (change)="updateActiviteCalendar($any($event.target).value)"/>
+            </div>
+          }
+
           <div class="prop-row">
             <label class="prop-label">Type</label>
             <span class="prop-badge" [class]="'badge-' + node.category">{{ node.category }}</span>
