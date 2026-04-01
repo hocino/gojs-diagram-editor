@@ -641,82 +641,92 @@ export class App implements AfterViewInit, OnDestroy {
           // ── Header row: coloured band with title + badges ──────────────────
           make(
             go.Panel,
-            go.Panel.Spot,
+            go.Panel.Auto,
             {
-              stretch: go.Stretch.Horizontal,
+              width: CARD_W,
               height: HEADER_H,
             },
-            // Header background
             make(go.Shape, 'RoundedTopRectangle', {
               fill: '#f0f4f8',
               strokeWidth: 0,
               stretch: go.Stretch.Fill,
               parameter1: 8,
             }),
-            // Title (left)
-            make(
-              go.TextBlock,
-              {
-                alignment: go.Spot.Left,
-                alignmentFocus: go.Spot.Left,
-                margin: new go.Margin(0, 0, 0, 12),
-                font: 'bold 12px Inter, "Segoe UI", sans-serif',
-                stroke: '#1e2c3a',
-                editable: true,
-                isMultiline: false,
-                overflow: go.TextOverflow.Ellipsis,
-                maxSize: new go.Size(120, Number.NaN),
-              },
-              new go.Binding('text', 'label').makeTwoWay()
-            ),
-            // Badges (right)
             make(
               go.Panel,
-              go.Panel.Horizontal,
+              go.Panel.Spot,
               {
-                alignment: go.Spot.Right,
-                alignmentFocus: go.Spot.Right,
-                margin: new go.Margin(0, 10, 0, 0),
+                width: CARD_W,
+                height: HEADER_H,
               },
-              // Points badge — purple
+              make(go.Shape, 'Rectangle', {
+                width: CARD_W,
+                height: HEADER_H,
+                fill: 'transparent',
+                strokeWidth: 0,
+                isPanelMain: true,
+              }),
               make(
-                go.Panel,
-                go.Panel.Auto,
-                make(go.Shape, 'RoundedRectangle', {
-                  fill: '#7c4dab',
-                  strokeWidth: 0,
-                  parameter1: 9,
-                  minSize: new go.Size(34, 18),
-                }),
-                make(
-                  go.TextBlock,
-                  {
-                    margin: new go.Margin(2, 6),
-                    font: 'bold 9px Inter, "Segoe UI", sans-serif',
-                    stroke: 'white',
-                  },
-                  new go.Binding('text', 'points', (p: number) => String(p ?? 0) + ' \u25c6')
-                )
+                go.TextBlock,
+                {
+                  alignment: go.Spot.Left,
+                  alignmentFocus: go.Spot.Left,
+                  margin: new go.Margin(0, 0, 0, 12),
+                  font: 'bold 12px Inter, "Segoe UI", sans-serif',
+                  stroke: '#1e2c3a',
+                  editable: true,
+                  isMultiline: false,
+                  overflow: go.TextOverflow.Ellipsis,
+                  maxSize: new go.Size(120, Number.NaN),
+                },
+                new go.Binding('text', 'label').makeTwoWay()
               ),
-              // Tag badge — orange (4 px gap via left margin)
               make(
                 go.Panel,
-                go.Panel.Auto,
-                { margin: new go.Margin(0, 0, 0, 4) },
-                make(go.Shape, 'RoundedRectangle', {
-                  fill: '#F47A30',
-                  strokeWidth: 0,
-                  parameter1: 9,
-                  minSize: new go.Size(34, 18),
-                }),
+                go.Panel.Horizontal,
+                {
+                  alignment: go.Spot.Right,
+                  alignmentFocus: go.Spot.Right,
+                  margin: new go.Margin(0, 4, 0, 0),
+                },
                 make(
-                  go.TextBlock,
-                  {
-                    margin: new go.Margin(2, 6),
-                    font: 'bold 9px Inter, "Segoe UI", sans-serif',
-                    stroke: 'white',
-                  },
-                  new go.Binding('text', 'tag', (t: string) => (t ?? 'DRT') + ' \uD83D\uDD12')
+                  go.Panel,
+                  go.Panel.Auto,
+                  make(go.Shape, 'RoundedRectangle', {
+                    fill: '#7c4dab',
+                    strokeWidth: 0,
+                    parameter1: 9,
+                    minSize: new go.Size(34, 18),
+                  }),
+                  make(
+                    go.TextBlock,
+                    {
+                      margin: new go.Margin(2, 6),
+                      font: 'bold 9px Inter, "Segoe UI", sans-serif',
+                      stroke: 'white',
+                    },
+                    new go.Binding('text', 'points', (p: number) => String(p ?? 0) + ' \u25c6')
+                  )
+                ),
+                make(
+                  go.Panel,
+                  go.Panel.Auto,
+                  { margin: new go.Margin(0, 0, 0, 4) },
+                  make(go.Shape, 'RoundedRectangle', {
+                    fill: '#F47A30',
+                    strokeWidth: 0,
+                    parameter1: 9,
+                    minSize: new go.Size(34, 18),
+                  }),
+                  make(
+                    go.TextBlock,
+                    {
+                      margin: new go.Margin(2, 6),
+                      font: 'bold 9px Inter, "Segoe UI", sans-serif',
+                      stroke: 'white',
+                    },
+                    new go.Binding('text', 'tag', (t: string) => (t ?? 'DRT') + ' \uD83D\uDD12')
+                  )
                 )
               )
             )
